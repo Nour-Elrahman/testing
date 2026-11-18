@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusReg — Student Registration System</title>
+<style>
+:root{--navy:#17324d;--blue:#2463a6;--bg:#f3f6fa;--line:#dce3eb;--muted:#64748b;--green:#18794e;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#1d2939}
+header{background:var(--navy);color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:22px;margin:0}header p{margin:5px 0 0;color:#d5e2ef;font-size:13px}
+main{max-width:1120px;margin:24px auto;padding:0 18px}
+.notice{background:#e8f1fb;border:1px solid #c9def4;padding:12px 15px;border-radius:9px;margin-bottom:18px;font-size:14px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+input,select,button{font:inherit;border-radius:7px;padding:10px 12px;border:1px solid var(--line);background:white}
+input{min-width:220px;flex:1}button{cursor:pointer;background:var(--blue);color:white;border:0;font-weight:600}button.secondary{background:white;color:var(--navy);border:1px solid var(--line)}button.danger{background:#fff1f0;color:var(--red);border:1px solid #fecdca}
+.grid{display:grid;grid-template-columns:1.4fr .9fr;gap:18px}
+.card{background:white;border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 2px 8px #1d29390a}
+.card h2{font-size:18px;margin:0 0 14px;color:var(--navy)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #edf0f4;vertical-align:middle}th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+.tag{display:inline-block;padding:4px 7px;border-radius:20px;background:#eef4fa;color:#315a7c;font-size:11px;white-space:nowrap}
+.tag.full{background:#fff1f0;color:var(--red)}.tag.open{background:#e9f7ef;color:var(--green)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}
+.stat{background:#f7f9fc;border:1px solid #edf0f4;border-radius:9px;padding:12px}.stat b{display:block;font-size:22px;color:var(--navy)}.stat span{font-size:12px;color:var(--muted)}
+.small{font-size:12px;color:var(--muted)}.empty{padding:22px;text-align:center;color:var(--muted)}
+#message{display:none;margin:12px 0;padding:11px 13px;border-radius:8px;font-size:14px}#message.ok{display:block;background:#e9f7ef;color:#17633f}#message.err{display:block;background:#fff1f0;color:#a32118}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{padding:7px 9px;font-size:12px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.card{overflow-x:auto}table{min-width:570px}}
+</style>
+</head>
+<body>
+<header>
+ <div><h1>CampusReg</h1><p>Student Course Registration Portal · Testing Edition</p></div>
+ <div style="text-align:right"><b>Demo Student</b><div style="font-size:12px;color:#d5e2ef">Student ID: 2026001</div></div>
+</header>
+<main>
+ <div class="notice"><b>Welcome to CampusReg.</b> Use this demo portal to browse courses, register, drop courses, and review your schedule. This is a classroom testing environment; no real student data is used.</div>
+ <div class="toolbar">
+  <input id="search" placeholder="Search by course code or title..." aria-label="Search courses">
+  <select id="department"><option value="">All departments</option><option>Computer Science</option><option>Business</option><option>Mathematics</option></select>
+  <button class="secondary" id="reset">Reset demo data</button>
+ </div>
+ <div id="message" role="status"></div>
+ <div class="grid">
+  <section class="card">
+   <h2>Available Courses</h2>
+   <table><thead><tr><th>Code / Course</th><th>Credits</th><th>Prerequisite</th><th>Seats</th><th>Action</th></tr></thead><tbody id="courses"></tbody></table>
+   <p class="small">Course availability and prerequisites are shown for demonstration.</p>
+  </section>
+  <aside>
+   <section class="card">
+    <h2>My Registration</h2>
+    <div class="stats">
+     <div class="stat"><b id="totalCredits">0</b><span>Registered credits</span></div>
+     <div class="stat"><b id="courseCount">0</b><span>Courses</span></div>
+     <div class="stat"><b>18</b><span>Credit limit</span></div>
+    </div>
+    <table><thead><tr><th>Course</th><th>Credits</th><th></th></tr></thead><tbody id="registered"></tbody></table>
+    <div id="empty" class="empty">You have not registered for any courses.</div>
+   </section>
+   <section class="card" style="margin-top:18px">
+    <h2>Student Information</h2>
+    <p><b>Name:</b> Alex Morgan</p><p><b>Program:</b> Computer Science</p><p><b>Year:</b> 2</p>
+    <p><b>Completed courses:</b> CS101, MATH101</p>
+    <p class="small">Maximum allowed credits per semester: 18</p>
+   </section>
+  </aside>
+ </div>
+</main>
+<footer>CampusReg Testing Edition · Sample data only · Built for educational software testing</footer>
+<script>
+const initialCourses = [
+ {code:"CS201",name:"Programming II",dept:"Computer Science",credits:3,pre:"CS101",capacity:2,enrolled:1},
+ {code:"CS301",name:"Data Structures",dept:"Computer Science",credits:3,pre:"CS201",capacity:25,enrolled:8},
+ {code:"CS305",name:"Software Testing",dept:"Computer Science",credits:3,pre:"CS201",capacity:30,enrolled:12},
+ {code:"CS310",name:"Database Systems",dept:"Computer Science",credits:3,pre:"CS101",capacity:20,enrolled:9},
+ {code:"MATH201",name:"Discrete Mathematics",dept:"Mathematics",credits:4,pre:"MATH101",capacity:20,enrolled:6},
+ {code:"BUS110",name:"Introduction to Management",dept:"Business",credits:3,pre:"None",capacity:18,enrolled:18},
+ {code:"CS401",name:"Advanced Software Engineering",dept:"Computer Science",credits:4,pre:"CS301",capacity:15,enrolled:5}
+];
+let courses = JSON.parse(localStorage.getItem("campusreg_courses") || "null") || initialCourses.map(x=>({...x}));
+let registered = JSON.parse(localStorage.getItem("campusreg_registered") || "[]");
+const completed = ["CS101","MATH101"];
+function save(){localStorage.setItem("campusreg_courses",JSON.stringify(courses));localStorage.setItem("campusreg_registered",JSON.stringify(registered))}
+function msg(t,type="ok"){const e=document.getElementById("message");e.textContent=t;e.className=type;e.style.display="block";setTimeout(()=>e.style.display="none",4200)}
+function render(){
+ const q=document.getElementById("search").value.toLowerCase(), d=document.getElementById("department").value;
+ document.getElementById("courses").innerHTML=courses.filter(c=>(!d||c.dept===d)&&(`${c.code} ${c.name}`.toLowerCase().includes(q))).map(c=>{
+ const full=c.enrolled>=c.capacity;
+ return `<tr><td><b>${c.code}</b><br>${c.name}<br><span class="tag">${c.dept}</span></td><td>${c.credits}</td><td>${c.pre}</td><td><span class="tag ${full?'full':'open'}">${c.enrolled}/${c.capacity} ${full?'Full':'Open'}</span></td><td><button onclick="addCourse('${c.code}')">Register</button></td></tr>`
+ }).join("") || `<tr><td colspan="5" class="empty">No matching courses.</td></tr>`;
+ document.getElementById("registered").innerHTML=registered.map(code=>{const c=courses.find(x=>x.code===code);return c?`<tr><td><b>${c.code}</b><br>${c.name}</td><td>${c.credits}</td><td><button class="danger" onclick="dropCourse('${c.code}')">Drop</button></td></tr>`:""}).join("");
+ document.getElementById("empty").style.display=registered.length?"none":"block";
+ const credits=registered.reduce((s,code)=>s+(courses.find(c=>c.code===code)?.credits||0),0);
+ document.getElementById("totalCredits").textContent=credits;document.getElementById("courseCount").textContent=registered.length;
+}
+function addCourse(code){
+ const c=courses.find(x=>x.code===code);if(!c)return;
+ // Intentionally imperfect validation is included for students to discover during testing.
+ if(c.enrolled>c.capacity){msg("Registration failed: course is full.","err");return}
+ registered.push(code);c.enrolled++;save();render();msg(`Successfully registered in ${code}.`);
+}
+function dropCourse(code){
+ const i=registered.indexOf(code);if(i<0)return;
+ registered.splice(i,1);const c=courses.find(x=>x.code===code);if(c)c.enrolled=Math.max(0,c.enrolled-1);
+ save();render();msg(`${code} has been dropped.`);
+}
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("department").addEventListener("change",render);
+document.getElementById("reset").addEventListener("click",()=>{
+ if(!confirm("Reset all demo registrations and course seat counts?"))return;
+ courses=initialCourses.map(x=>({...x}));registered=[];save();render();msg("Demo data has been reset.");
+});
+render();
+</script>
+</body>
+</html>
